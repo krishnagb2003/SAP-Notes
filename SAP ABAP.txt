@@ -1,0 +1,21 @@
+1.SAP ABAP
+2.SAP Modules
+3.Application Layer Compponents
+
+1.
+  SAP ABAP =>
+The programming language of SAP
+ABAP stands for Advanced Business Application Programming.
+
+*Why ABAP is used
+To customize SAP as per company needs
+To create reports, forms, interfaces, and enhancements
+To add logic where standard SAP is not enough
+
+*What you can do with ABAP
+Reports (ALV reports)
+Forms (SmartForms, Adobe Forms)
+Interfaces (connect SAP with other systems)
+Enhancements (user exits, BAdIs)
+Data conversions (LSMW, programs)
+

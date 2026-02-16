@@ -1,0 +1,2 @@
+Cardinality:
+number of records in key table, corresponds to how many number of records in to secondary/foreign key table

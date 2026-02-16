@@ -1,0 +1,160 @@
+| Feature        | **SAP ECC**             | **SAP HANA / S/4HANA**      |
+| -------------- | ----------------------- | --------------------------- |
+| Type           | Traditional ERP         | Next-gen ERP                |
+| Database       | Oracle, DB2, SQL Server | **HANA only (in-memory)**   |
+| Speed          | Slower                  | **Very fast**               |
+| Data storage   | Disk-based              | **In-memory (RAM)**         |
+| Tables         | Many redundant tables   | **Simplified tables**       |
+| Reporting      | Separate tools needed   | **Real-time reporting**     |
+| User Interface | SAP GUI                 | **Fiori (web-based)**       |
+| Code           | Classic ABAP            | **Optimized ABAP for HANA** |
+| Year           | Older (2004)            | New (2015)                  |
+
+
+1️⃣ SAP
+Full form: Systems, Applications, and Products in Data Processing
+Purpose: Helps companies run business processes faster and in an integrated way
+
+2️⃣ ERP
+Full form: Enterprise Resource Planning
+Purpose: Manages all business activities of a company in one system
+
+3️⃣ SAP Architecture (3-tier)
+Presentation Layer: User interface (SAP GUI / Fiori)
+Application Layer: Processes business logic
+Database Layer: Stores all business data
+
+4️⃣ SAP ECC
+Full form: Enterprise Core Component
+Description: Older SAP ERP system used before S/4HANA
+Key: Supports multiple databases (Oracle, DB2, SQL Server)
+
+5️⃣ SAP HANA
+Full form: High-Performance Analytic Appliance
+Description: In-memory database for fast, real-time processing
+
+6️⃣ Difference: ECC vs S/4HANA
+Feature	   ECC	S/4HANA
+Database	   Multiple (Oracle, DB2, SQL)         HANA only (in-memory)
+Speed	   Slower	                          Very fast / real-time
+Data model  Complex, many tables	             Simplified
+UI	        SAP GUI	                      Fiori (web/mobile)
+Year	        2004	                          2015
+
+7️⃣ SAP S/4HANA
+Latest ERP system built on HANA
+Simple, fast, real-time
+S = Simple, 4 = 4th generation, HANA = in-memory database
+
+8️⃣ SAP Landscape
+Definition: Set of SAP systems used to develop, test, and run SAP safely
+Systems:
+DEV: Development / coding / configuration
+QAS: Quality / testing
+PRD: Production / live business
+
+9️⃣ Why DEV, QAS, PRD
+DEV → develop & configure
+QAS → test & validate
+PRD → live business operations
+
+🔟 Why move from ECC to S/4HANA
+ECC is older, slower, and less efficient
+S/4HANA is faster, simpler, and real-time
+-------------------------------------------------------------------------------
+
++The architecture of SAP R/1(Single Tier Architecture) Structure(1972):
+SAP r/1 (R means Real time) and 1 means 1-tier architecture.
+First version of the software is released in 1972.
+
+
+Architecture
+Single-tier
+One system handles:
+Presentation
+Application
+Database
+
+🔹 Advantages
+Simple design
+Good for small companies
+First real-time SAP system
+
+🔹 Disadvantages
+No scalability
+Poor performance
+Not suitable for large organizations
+Everything in one system → risky
+
+Why move from R/1 to R/2?
+❌ Could not handle large data
+❌ No multi-user support
+✔ Need for better performance & reliability
+
++SAP R/2 Architecture
+
+🔹 Architecture
+Two-tier
+Runs on mainframe computers
+Layers:
+Presentation + Application (together)
+Database (separate)
+
+🔹 Advantages
+Better performance than R/1
+Supports large enterprises
+Stable for mission-critical systems
+
+🔹 Disadvantages
+Very expensive (mainframes)
+Not user-friendly
+Limited flexibility
+No open systems support
+
+🔹 Why move from R/2 to R/3?
+- High cost
+- Difficult to customize
+- Old mainframe technology
+* Need for flexible, open, client-server system
+
++SAP R/3 Architecture
+Three-tier (Client–Server)
+
+🔹 Architecture
+Three-tier (Client–Server)
+Layers:
+Presentation
+Application
+Database
+
+🔹 Advantages
+Scalable & flexible
+Works on open systems
+Multi-user support
+GUI-based (easy to use)
+Foundation for modern SAP
+
+🔹 Disadvantages
+Complex compared to R/1
+Requires skilled admins
+Initially expensive to implement
+
+*R/1 → Simple
+*R/2 → Mainframe
+*R/3 → Client-Server
+
+******************************
+* ABAP Workbench:
+  it is a collection of ABAP tools.
+  SE38->PROGRAM/REPORT
+  SE11->ABAP Dictionsry
+  SE37->Function module
+  SE24->Class
+  SE80->Object Navigator
+  SE21-> to create a package
+  MM01-> to create the material
+  
+
+* Transsaction Code:
+  It is a shortcut to access the ABAP workbench tools.
+
