@@ -153,6 +153,7 @@ Initially expensive to implement
   SE80->Object Navigator
   SE21-> to create a package
   MM01-> to create the material
+  SM30-> to Maintain the Maintenance View Table(Insert,Update,delete,)
   
 
 * Transsaction Code:
