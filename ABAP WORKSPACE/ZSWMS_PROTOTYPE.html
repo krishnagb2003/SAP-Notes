@@ -1,0 +1,1072 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Workforce Management System</title>
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=72:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js for Dashboard -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        /* SAP Fiori Inspired Variables */
+        :root {
+            --sapBrandColor: #0070f2;
+            --sapBaseColor: #ffffff;
+            --sapBackgroundColor: #f2f2f2;
+            --sapTextColor: #32363a;
+            --sapHeaderColor: #354a5f;
+            --sapSidebarColor: #1a2332;
+            --sapSidebarHover: #283446;
+            --sapSidebarActive: #0070c7;
+            --sapBorderColor: #d9d9d9;
+            --sapFocusColor: #0070f2;
+            
+            /* Status Colors */
+            --status-success: #107e3e;
+            --status-success-bg: #e5f6e8;
+            --status-warning: #e9730c;
+            --status-warning-bg: #fdf5e7;
+            --status-critical: #bb0000;
+            --status-critical-bg: #fae0e0;
+            --status-info: #0070f2;
+            --status-info-bg: #e5f0fa;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: '72', 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--sapBackgroundColor);
+            color: var(--sapTextColor);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Top Shell Bar */
+        .shell-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 48px;
+            background-color: var(--sapHeaderColor);
+            color: white;
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            z-index: 1000;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+        }
+
+        .shell-bar-logo {
+            font-size: 20px;
+            font-weight: bold;
+            margin-right: 16px;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .shell-bar-title {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .shell-bar-actions {
+            margin-left: auto;
+            display: flex;
+            gap: 16px;
+        }
+
+        .shell-icon {
+            cursor: pointer;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: background 0.2s;
+            position: relative;
+        }
+        
+        .shell-icon:hover { background-color: rgba(255,255,255,0.1); }
+        .badge {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            background: var(--status-critical);
+            color: white;
+            font-size: 10px;
+            padding: 2px 5px;
+            border-radius: 10px;
+            font-weight: bold;
+        }
+
+        /* Sidebar Navigation */
+        .sidebar {
+            width: 250px;
+            background-color: var(--sapSidebarColor);
+            color: white;
+            padding-top: 48px;
+            height: 100vh;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            z-index: 900;
+        }
+
+        .nav-item {
+            padding: 12px 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 14px;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+        }
+
+        .nav-item:hover {
+            background-color: var(--sapSidebarHover);
+        }
+
+        .nav-item.active {
+            background-color: var(--sapSidebarActive);
+            border-left-color: #fff;
+        }
+
+        .nav-item i { width: 20px; text-align: center; }
+
+        /* Main Content Area */
+        .main-content {
+            flex-grow: 1;
+            padding: 72px 24px 24px; /* Added top padding to clear Shell Bar */
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .view-section { display: none; animation: fadeIn 0.3s ease; }
+        .view-section.active { display: block; }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        .page-header {
+            margin-bottom: 24px;
+        }
+
+        .page-title {
+            font-size: 24px;
+            font-weight: 400;
+            color: var(--sapTextColor);
+        }
+
+        /* Cards */
+        .card {
+            background: white;
+            border-radius: 4px;
+            box-shadow: 0 0 2px rgba(0,0,0,0.1), 0 2px 4px rgba(0,0,0,0.05);
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .kpi-card {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding: 16px 20px;
+        }
+        .kpi-title { font-size: 14px; color: #6a6d70; }
+        .kpi-value { font-size: 28px; font-weight: 300; color: var(--sapBrandColor); }
+        .kpi-sub { font-size: 12px; color: var(--sapTextColor); }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        /* Tables Fiori Style */
+        .sap-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .sap-table th {
+            text-align: left;
+            padding: 12px;
+            background-color: #f7f7f7;
+            border-bottom: 2px solid var(--sapBorderColor);
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .sap-table td {
+            padding: 12px;
+            border-bottom: 1px solid var(--sapBorderColor);
+            font-size: 14px;
+        }
+
+        .sap-table tr:hover { background-color: #f6f8fb; }
+
+        /* Status Pills */
+        .status-pill {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .status-success { background: var(--status-success-bg); color: var(--status-success); }
+        .status-warning { background: var(--status-warning-bg); color: var(--status-warning); }
+        .status-critical { background: var(--status-critical-bg); color: var(--status-critical); }
+        .status-info { background: var(--status-info-bg); color: var(--status-info); }
+
+        /* Buttons */
+        .sap-btn {
+            background-color: white;
+            border: 1px solid var(--sapBrandColor);
+            color: var(--sapBrandColor);
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        .sap-btn:hover { background-color: #e5f0fa; }
+        .sap-btn-primary {
+            background-color: var(--sapBrandColor);
+            color: white;
+        }
+        .sap-btn-primary:hover { background-color: #005fcc; }
+
+        /* Timeline View */
+        .timeline-container { position: relative; padding: 20px 0; }
+        .timeline-container::before {
+            content: ''; position: absolute; top: 0; bottom: 0; left: 20px;
+            width: 2px; background: var(--sapBorderColor);
+        }
+        .timeline-event { position: relative; padding-left: 50px; margin-bottom: 24px; }
+        .timeline-point {
+            position: absolute; left: 14px; top: 0; width: 14px; height: 14px;
+            border-radius: 50%; background: var(--sapBrandColor); border: 2px solid white;
+            box-shadow: 0 0 0 2px var(--sapBrandColor);
+        }
+        .timeline-content {
+            background: white; padding: 12px 16px; border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: inline-block; min-width: 300px;
+        }
+        .timeline-date { font-size: 12px; color: #6a6d70; margin-bottom: 4px; }
+        .timeline-title { font-weight: 600; font-size: 14px; }
+
+        /* Kanban Board */
+        .kanban-board { display: flex; gap: 16px; overflow-x: auto; padding-bottom: 10px; }
+        .kanban-col { background: #f4f5f6; border-radius: 4px; min-width: 300px; padding: 12px; }
+        .kanban-header { font-weight: bold; margin-bottom: 12px; padding: 0 4px; font-size: 14px; display: flex; justify-content: space-between; }
+        .kanban-card { background: white; padding: 12px; border-radius: 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); margin-bottom: 12px; border-left: 3px solid var(--sapBrandColor); }
+        .kanban-card-title { font-weight: 600; font-size: 14px; margin-bottom: 8px; }
+
+        /* Project Cards */
+        .projects-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+        .project-card { border-top: 4px solid var(--sapBrandColor); }
+
+        /* Controls / Selects */
+        .sap-select, .sap-input {
+            padding: 8px; border: 1px solid var(--sapBorderColor); border-radius: 4px;
+            font-size: 14px; width: 100%; max-width: 300px; outline: none;
+        }
+        .sap-select:focus, .sap-input:focus { border-color: var(--sapBrandColor); }
+
+        .toolbar { display: flex; justify-content: space-between; margin-bottom: 16px; align-items: center; }
+
+        /* Toast Message UI */
+        #toast-container {
+            position: fixed;
+            bottom: 32px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 9999;
+        }
+        .sap-toast {
+            background-color: #32363a;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 4px;
+            font-size: 14px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            animation: slideUp 0.3s ease forwards, fadeOut 0.3s ease 2.7s forwards;
+            opacity: 0;
+        }
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
+
+        /* Dark Theme Variables */
+        body.dark-theme {
+            --sapBaseColor: #1c2228;
+            --sapBackgroundColor: #111519;
+            --sapTextColor: #e0e0e0;
+            --sapHeaderColor: #1a2332;
+            --sapBorderColor: #32363a;
+        }
+        body.dark-theme .card, body.dark-theme .timeline-content, body.dark-theme .kanban-card {
+            background-color: #242b31;
+            color: #fff;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.5);
+        }
+        body.dark-theme .sap-table th { background-color: #1c2228; color:#fff; border-bottom-color:#32363a; }
+        body.dark-theme .sap-table td { border-bottom-color:#32363a; }
+        body.dark-theme .sap-table tr:hover { background-color: #2a333b; }
+        body.dark-theme .kanban-col { background-color: #1a2025; }
+        body.dark-theme .sap-btn { background-color: #242b31; border-color: var(--sapBrandColor); color: #fff;}
+        body.dark-theme .sap-btn-primary { background-color: var(--sapBrandColor); }
+        body.dark-theme .sap-select, body.dark-theme .sap-input { background: #1c2228; color: #fff; border-color:#32363a; }
+
+    </style>
+</head>
+<body>
+
+    <!-- Shell Bar -->
+    <header class="shell-bar">
+        <div class="shell-bar-logo">
+            <i class="fa-solid fa-gem"></i>
+        </div>
+        <div class="shell-bar-title">Smart Workforce Management System</div>
+        <div class="shell-bar-actions">
+            <div class="shell-icon" onclick="navigate('notifications')">
+                <i class="fa-regular fa-bell"></i>
+                <span class="badge" id="notif-badge">3</span>
+            </div>
+            <div class="shell-icon" onclick="toggleTheme()" title="Toggle Dark Theme">
+                <i class="fa-solid fa-moon"></i>
+            </div>
+            <div class="shell-icon">
+                <i class="fa-regular fa-user"></i>
+            </div>
+        </div>
+    </header>
+
+    <!-- Sidebar -->
+    <nav class="sidebar">
+        <div class="nav-item active" onclick="navigate('dashboard')" data-target="dashboard">
+            <i class="fa-solid fa-chart-pie"></i> Dashboard
+        </div>
+        <div class="nav-item" onclick="navigate('employees')" data-target="employees">
+            <i class="fa-solid fa-users"></i> Employees
+        </div>
+        <div class="nav-item" onclick="navigate('timeline')" data-target="timeline">
+            <i class="fa-solid fa-clock-rotate-left"></i> Timeline
+        </div>
+        <div class="nav-item" onclick="navigate('contracts')" data-target="contracts">
+            <i class="fa-solid fa-file-signature"></i> Contracts
+        </div>
+        <div class="nav-item" onclick="navigate('projects')" data-target="projects">
+            <i class="fa-solid fa-briefcase"></i> Projects
+        </div>
+        <div class="nav-item" onclick="navigate('tasks')" data-target="tasks">
+            <i class="fa-solid fa-list-check"></i> Tasks
+        </div>
+        <div class="nav-item" onclick="navigate('notifications')" data-target="notifications">
+            <i class="fa-solid fa-envelope-open-text"></i> Notifications
+        </div>
+        <div class="nav-item" onclick="navigate('ai-summary')" data-target="ai-summary">
+            <i class="fa-solid fa-wand-magic-sparkles"></i> AI Summary
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        
+        <!-- Dashboard View -->
+        <section id="view-dashboard" class="view-section active">
+            <div class="page-header">
+                <h1 class="page-title">Overview Dashboard</h1>
+            </div>
+            
+            <div class="kpi-grid">
+                <div class="card kpi-card">
+                    <span class="kpi-title">Total Employees</span>
+                    <span class="kpi-value" id="kpi-emp">0</span>
+                    <span class="kpi-sub">Active in system</span>
+                </div>
+                <div class="card kpi-card">
+                    <span class="kpi-title">Expiring Contracts</span>
+                    <span class="kpi-value" style="color:var(--status-critical)" id="kpi-contracts">0</span>
+                    <span class="kpi-sub">Within 30 days</span>
+                </div>
+                <div class="card kpi-card">
+                    <span class="kpi-title">Pending Tasks</span>
+                    <span class="kpi-value" style="color:var(--status-warning)" id="kpi-tasks">0</span>
+                    <span class="kpi-sub">Needs attention</span>
+                </div>
+                <div class="card kpi-card">
+                    <span class="kpi-title">Active Projects</span>
+                    <span class="kpi-value" id="kpi-projects">0</span>
+                    <span class="kpi-sub">Ongoing allocations</span>
+                </div>
+            </div>
+
+            <div class="charts-grid">
+                <div class="card">
+                    <h3 style="margin-bottom: 16px; font-weight: 600; font-size:16px;">Task Distribution Status</h3>
+                    <canvas id="taskChart" height="200"></canvas>
+                </div>
+                <!-- Notifications Summary inside Dashboard -->
+                <div class="card" style="display: flex; flex-direction:column; gap:8px;">
+                    <h3 style="margin-bottom: 8px; font-weight: 600; font-size:16px;">Recent Alerts</h3>
+                    <div id="dash-alerts-container" style="overflow-y:auto; max-height:200px;">
+                        <!-- Injected via JS -->
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card" style="max-width: 380px;">
+                <h3 style="margin-bottom: 16px; font-weight: 600; font-size:16px;">Contract Statuses</h3>
+                <canvas id="contractChart" height="200"></canvas>
+            </div>
+        </section>
+
+        <!-- Employees View -->
+        <section id="view-employees" class="view-section">
+            <div class="page-header">
+                <h1 class="page-title">Employee Master Data</h1>
+            </div>
+            <div class="card">
+                <div class="toolbar">
+                    <input type="text" class="sap-input" placeholder="Search employees..." onkeyup="renderEmployeeTable(this.value)">
+                    <div style="display:flex; gap:8px;">
+                        <button class="sap-btn" onclick="showToast('Exporting SAP_EMPLOYEES.xlsx...')"><i class="fa-solid fa-download"></i> Export</button>
+                        <button class="sap-btn sap-btn-primary"><i class="fa-solid fa-plus"></i> Create</button>
+                    </div>
+                </div>
+                <table class="sap-table" id="emp-table">
+                    <thead>
+                        <tr>
+                            <th>EMP_ID</th>
+                            <th>Name</th>
+                            <th>Role</th>
+                            <th>Department</th>
+                            <th>Join Date</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Timeline View -->
+        <section id="view-timeline" class="view-section">
+            <div class="page-header">
+                <h1 class="page-title">Employee History Timeline</h1>
+            </div>
+            <div class="card">
+                <div class="toolbar">
+                    <select class="sap-select" id="timeline-emp-select" onchange="renderTimeline()">
+                        <!-- Options injected -->
+                    </select>
+                </div>
+                <div class="timeline-container" id="timeline-container">
+                    <!-- Events injected -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Contracts View -->
+        <section id="view-contracts" class="view-section">
+            <div class="page-header">
+                <h1 class="page-title">Contract Management</h1>
+            </div>
+            <div class="card">
+                <div class="toolbar" style="justify-content: flex-end;">
+                    <button class="sap-btn" onclick="showToast('Exporting CONTRACTS_REPORT.xlsx...')"><i class="fa-solid fa-file-excel"></i> Export to Excel</button>
+                </div>
+                <table class="sap-table" id="contract-table">
+                    <thead>
+                        <tr>
+                            <th>Contract ID</th>
+                            <th>Employee</th>
+                            <th>Type</th>
+                            <th>End Date</th>
+                            <th>Days Remaining</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Projects View -->
+        <section id="view-projects" class="view-section">
+            <div class="page-header">
+                <h1 class="page-title">Project Allocations</h1>
+            </div>
+            <div class="projects-grid" id="projects-container">
+                <!-- Cards injected -->
+            </div>
+        </section>
+
+        <!-- Tasks View -->
+        <section id="view-tasks" class="view-section">
+            <div class="page-header">
+                <h1 class="page-title">Task Management (Kanban)</h1>
+            </div>
+            <div class="kanban-board">
+                <div class="kanban-col">
+                    <div class="kanban-header">Pending <span class="badge" style="position:static;" id="kb-count-pending">0</span></div>
+                    <div id="kb-pending"></div>
+                </div>
+                <div class="kanban-col">
+                    <div class="kanban-header">In Progress <span class="badge" style="position:static; background:var(--sapBrandColor)" id="kb-count-progress">0</span></div>
+                    <div id="kb-progress"></div>
+                </div>
+                <div class="kanban-col">
+                    <div class="kanban-header">Completed <span class="badge" style="position:static; background:var(--status-success)" id="kb-count-completed">0</span></div>
+                    <div id="kb-completed"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Notifications View -->
+        <section id="view-notifications" class="view-section">
+            <div class="page-header">
+                <h1 class="page-title">System Alerts & Notifications</h1>
+            </div>
+            <div class="card">
+                <div class="toolbar">
+                    <button class="sap-btn" onclick="markAllNotificationsRead()"><i class="fa-solid fa-check-double"></i> Mark All Read</button>
+                </div>
+                <div id="full-notifications-container">
+                    <!-- Injected via JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- AI Summary View -->
+        <section id="view-ai-summary" class="view-section">
+            <div class="page-header">
+                <h1 class="page-title">AI Assistant - Employee Summary</h1>
+            </div>
+            <div class="card">
+                <p style="margin-bottom:16px; color:#6a6d70;">Leverage AI to quickly summarize an employee's performance, tasks, and contract status to make renewal decisions.</p>
+                <div class="toolbar" style="justify-content:flex-start; gap:16px;">
+                    <select class="sap-select" id="ai-emp-select"></select>
+                    <button class="sap-btn sap-btn-primary" onclick="generateAISummary()"><i class="fa-solid fa-wand-magic-sparkles"></i> Generate Summary</button>
+                </div>
+                
+                <div id="ai-output" style="display:none; margin-top:24px; padding:20px; background:#f5fafe; border:1px solid #7cb1f9; border-radius:4px; line-height:1.6;">
+                    <h3 style="color:#005fcc; margin-bottom:8px;"><i class="fa-solid fa-robot"></i> System Generation</h3>
+                    <p id="ai-text"></p>
+                </div>
+            </div>
+        </section>
+
+        <div id="toast-container"></div>
+    </main>
+
+<script>
+/**
+ * -------------------------------------------------------------
+ * MOCK DATABASE (SAP Z TABLES)
+ * -------------------------------------------------------------
+ */
+const ZSWMS = {
+    EMPLOYEE: [
+        { EMP_ID: "SAP-2024-001", NAME: "Rohan Sharma", EMAIL: "rohan.s@acme.inc", ROLE: "Senior ABAP Dev", DEPARTMENT: "Engineering", JOIN_DATE: "2021-03-15", STATUS: "Active", MANAGER_ID: "M-01" },
+        { EMP_ID: "SAP-2024-002", NAME: "Priya Desai", EMAIL: "priya.d@acme.inc", ROLE: "Fiori UI Developer", DEPARTMENT: "Design", JOIN_DATE: "2023-11-01", STATUS: "Active", MANAGER_ID: "M-01" },
+        { EMP_ID: "SAP-2024-003", NAME: "Vikram Singh", EMAIL: "vikram.s@acme.inc", ROLE: "Project Manager", DEPARTMENT: "Management", JOIN_DATE: "2019-06-10", STATUS: "Active", MANAGER_ID: "EXEC" },
+        { EMP_ID: "SAP-2024-004", NAME: "Anjali Gupta", EMAIL: "anjali.g@acme.inc", ROLE: "QA Analyst", DEPARTMENT: "Testing", JOIN_DATE: "2023-04-12", STATUS: "Active", MANAGER_ID: "M-01" },
+        { EMP_ID: "SAP-2024-005", NAME: "Karan Verma", EMAIL: "karan.v@acme.inc", ROLE: "Backend Intern", DEPARTMENT: "Engineering", JOIN_DATE: "2024-01-10", STATUS: "Active", MANAGER_ID: "SAP-2024-001" },
+        { EMP_ID: "SAP-2024-006", NAME: "Meera Reddy", EMAIL: "meera.r@acme.inc", ROLE: "Data Engineer", DEPARTMENT: "Data", JOIN_DATE: "2022-08-20", STATUS: "Active", MANAGER_ID: "M-01" }
+    ],
+    CONTRACT: [
+        { CONTRACT_ID: "CON-001", EMP_ID: "SAP-2024-001", START_DATE: "2021-03-15", END_DATE: "2026-03-15", STATUS: "Active", TYPE: "Permanent" }, // Active
+        { CONTRACT_ID: "CON-002", EMP_ID: "SAP-2024-002", START_DATE: "2023-11-01", END_DATE: "2024-11-01", STATUS: "Active", TYPE: "Contract" }, // Expiring soon (assuming today is ~Oct/Nov 2024)
+        { CONTRACT_ID: "CON-003", EMP_ID: "SAP-2024-003", START_DATE: "2019-06-10", END_DATE: "2029-06-10", STATUS: "Active", TYPE: "Permanent" }, // Active
+        { CONTRACT_ID: "CON-004", EMP_ID: "SAP-2024-004", START_DATE: "2023-04-12", END_DATE: "2024-04-15", STATUS: "Critical", TYPE: "Contract" }, // Critical (Expires in 2 days from test date)
+        { CONTRACT_ID: "CON-005", EMP_ID: "SAP-2024-005", START_DATE: "2024-01-10", END_DATE: "2024-04-10", STATUS: "Expired", TYPE: "Intern" }, // Expired
+        { CONTRACT_ID: "CON-006", EMP_ID: "SAP-2024-006", START_DATE: "2022-08-20", END_DATE: "2024-08-20", STATUS: "Expiring Soon", TYPE: "Permanent" } 
+    ],
+    PROJECT: [
+        { PROJECT_ID: "PRJ-101", NAME: "S/4HANA Migration", CLIENT: "Tata Motors", START_DATE: "2023-01-10", END_DATE: "2024-12-31", STATUS: "In Progress" },
+        { PROJECT_ID: "PRJ-102", NAME: "Fiori Apps Rollout", CLIENT: "Reliance Retail", START_DATE: "2024-02-01", END_DATE: "2024-08-30", STATUS: "In Progress" },
+        { PROJECT_ID: "PRJ-103", NAME: "Legacy HR System Decom", CLIENT: "Infosys Internal", START_DATE: "2024-03-15", END_DATE: "2024-05-15", STATUS: "Completed" }
+    ],
+    EMP_PROJECT: [
+        { EMP_ID: "SAP-2024-001", PROJECT_ID: "PRJ-101", ROLE_IN_PROJECT: "Lead ABAP" },
+        { EMP_ID: "SAP-2024-003", PROJECT_ID: "PRJ-101", ROLE_IN_PROJECT: "Scrum Master" },
+        { EMP_ID: "SAP-2024-002", PROJECT_ID: "PRJ-102", ROLE_IN_PROJECT: "UI/UX Dev" },
+        { EMP_ID: "SAP-2024-004", PROJECT_ID: "PRJ-102", ROLE_IN_PROJECT: "QA Tester" },
+        { EMP_ID: "SAP-2024-006", PROJECT_ID: "PRJ-101", ROLE_IN_PROJECT: "Data Migration" }
+    ],
+    TASK: [
+        { TASK_ID: "T-001", TITLE: "Create CDS Views for PO", DESCRIPTION: "Write Z CDS Views", ASSIGNED_TO: "SAP-2024-001", DEADLINE: "2024-04-14", PRIORITY: "High", STATUS: "In Progress" },
+        { TASK_ID: "T-002", TITLE: "Design Master Detail View", DESCRIPTION: "Fiori elements layout", ASSIGNED_TO: "SAP-2024-002", DEADLINE: "2024-04-20", PRIORITY: "Medium", STATUS: "Pending" },
+        { TASK_ID: "T-003", TITLE: "Sprint Planning", DESCRIPTION: "Align with Tata biz team", ASSIGNED_TO: "SAP-2024-003", DEADLINE: "2024-04-12", PRIORITY: "High", STATUS: "Completed" },
+        { TASK_ID: "T-004", TITLE: "Test OData Services", DESCRIPTION: "Postman testing", ASSIGNED_TO: "SAP-2024-004", DEADLINE: "2024-04-15", PRIORITY: "Low", STATUS: "In Progress" },
+        { TASK_ID: "T-005", TITLE: "Setup HANA DB Schema", DESCRIPTION: "Create core tables", ASSIGNED_TO: "SAP-2024-006", DEADLINE: "2024-04-22", PRIORITY: "High", STATUS: "Pending" }
+    ],
+    NOTIFICATION: [
+        { NOTIF_ID: "N-01", EMP_ID: "SAP-2024-004", TYPE: "Contract Expiry", MESSAGE: "Contract for Anjali ends in 2 days. PLEASE RENEW.", DATE: "2024-04-13", IS_READ: false },
+        { NOTIF_ID: "N-02", EMP_ID: "SAP-2024-001", TYPE: "Anniversary", MESSAGE: "Rohan completed 3 years! Send wishes.", DATE: "2024-03-15", IS_READ: false },
+        { NOTIF_ID: "N-03", EMP_ID: "SAP-2024-005", TYPE: "Contract Expired", MESSAGE: "Internship contract for Karan expired 3 days ago.", DATE: "2024-04-10", IS_READ: false },
+        { NOTIF_ID: "N-04", EMP_ID: "SAP-2024-006", TYPE: "Contract Expiry", MESSAGE: "Contract for Meera ends in 28 days.", DATE: "2024-04-01", IS_READ: true },
+        { NOTIF_ID: "N-05", EMP_ID: "SAP-2024-002", TYPE: "Risk Alert", MESSAGE: "Priya has no tasks assigned for Sprint 3.", DATE: "2024-04-12", IS_READ: true }
+    ]
+};
+
+// Simulate Current Date to align with dummy data (Inject April 13, 2024 context)
+const CURRENT_DATE = new Date("2024-04-13T00:00:00");
+
+/**
+ * -------------------------------------------------------------
+ * ABAP BUSINESS LOGIC SIMULATION (Function Modules)
+ * -------------------------------------------------------------
+ */
+
+function Z_CALC_CONTRACT_STATUS(endDateStr) {
+    const end = new Date(endDateStr);
+    const diffTime = end - CURRENT_DATE;
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+    
+    let status = '';
+    if (diffDays > 30) status = 'Active';
+    else if (diffDays > 7 && diffDays <= 30) status = 'Expiring Soon';
+    else if (diffDays >= 0 && diffDays <= 7) status = 'Critical';
+    else status = 'Expired';
+    
+    return { daysRemaining: diffDays, status: status };
+}
+
+function Z_AI_SUMMARIZE_EMPLOYEE(empId) {
+    const emp = ZSWMS.EMPLOYEE.find(e => e.EMP_ID === empId);
+    if(!emp) return "Error: Employee not found.";
+
+    const contract = ZSWMS.CONTRACT.find(c => c.EMP_ID === empId);
+    const empProjects = ZSWMS.EMP_PROJECT.filter(ep => ep.EMP_ID === empId);
+    const projects = empProjects.map(ep => ZSWMS.PROJECT.find(p => p.PROJECT_ID === ep.PROJECT_ID)?.NAME).filter(Boolean).join(", ");
+    const tasks = ZSWMS.TASK.filter(t => t.ASSIGNED_TO === empId);
+    
+    const completedTasks = tasks.filter(t => t.STATUS === "Completed").length;
+    const pendingTasks = tasks.filter(t => t.STATUS !== "Completed").length;
+    
+    const cStatus = contract ? Z_CALC_CONTRACT_STATUS(contract.END_DATE) : {daysRemaining: 0, status: 'No Contract'};
+    
+    let aiPara = `<strong>${emp.NAME}</strong> (${emp.ROLE} in ${emp.DEPARTMENT}) joined us on ${emp.JOIN_DATE}. `;
+    
+    if(projects.length > 0) aiPara += `They are currently key members contributing to: ${projects}. `;
+    else aiPara += `Currently not assigned to any major projects. `;
+    
+    aiPara += `Track record shows ${completedTasks} completed tasks and ${pendingTasks} active tasks in the pipeline. `;
+    
+    if(cStatus.status === 'Critical' || cStatus.status === 'Expiring Soon') {
+        aiPara += `<strong>Action Required:</strong> Their ${contract.TYPE} contract has ${cStatus.daysRemaining} days remaining (${cStatus.status}). Given their active role in current projects, <strong>RENEWAL IS HIGHLY RECOMMENDED.</strong>`;
+    } else if (cStatus.status === 'Expired') {
+        aiPara += `Their contract has expired. Please initiate offboarding or emergency extension.`;
+    } else {
+        aiPara += `Contract is secure with ${cStatus.daysRemaining} days remaining.`;
+    }
+    
+    return aiPara;
+}
+
+/**
+ * -------------------------------------------------------------
+ * ODATA ENDPOINTS SIMULATION (JS Promises)
+ * -------------------------------------------------------------
+ */
+
+const OData = {
+    getEmployeeSet: () => Promise.resolve(ZSWMS.EMPLOYEE),
+    getContractSet: () => {
+        // Hydrate status live using the function module
+        const hydrated = ZSWMS.CONTRACT.map(c => {
+            const cs = Z_CALC_CONTRACT_STATUS(c.END_DATE);
+            return {...c, CALC_STATUS: cs.status, DAYS_REMAINING: cs.daysRemaining};
+        });
+        return Promise.resolve(hydrated);
+    },
+    getTaskSet: () => Promise.resolve(ZSWMS.TASK),
+    getProjectSet: () => Promise.resolve(ZSWMS.PROJECT),
+    getNotificationSet: () => Promise.resolve(ZSWMS.NOTIFICATION),
+    getTimelineSet: (empId) => {
+        // Construct timeline
+        const emp = ZSWMS.EMPLOYEE.find(e => e.EMP_ID === empId);
+        const con = ZSWMS.CONTRACT.find(c => c.EMP_ID === empId);
+        const tasks = ZSWMS.TASK.filter(t => t.ASSIGNED_TO === empId);
+        const eprojs = ZSWMS.EMP_PROJECT.filter(ep => ep.EMP_ID === empId);
+        
+        let events = [];
+        if(emp) events.push({ date: emp.JOIN_DATE, title: "Joined Company", desc: `Joined as ${emp.ROLE}`});
+        if(con) events.push({ date: con.START_DATE, title: "Contract Started", desc: `${con.TYPE} agreement initiated.`});
+        eprojs.forEach(ep => {
+            const p = ZSWMS.PROJECT.find(p=>p.PROJECT_ID === ep.PROJECT_ID);
+            events.push({ date: p.START_DATE, title: "Assigned to Project", desc: `Assigned as ${ep.ROLE_IN_PROJECT} on ${p.NAME}`});
+        });
+        tasks.filter(t=>t.STATUS==='Completed').forEach(t => {
+            events.push({ date: t.DEADLINE, title: "Task Completed", desc: t.TITLE });
+        });
+        
+        events.sort((a,b) => new Date(b.date) - new Date(a.date)); // descending
+        return Promise.resolve(events);
+    }
+};
+
+/**
+ * -------------------------------------------------------------
+ * FRONTEND ROUTING & RENDERING
+ * -------------------------------------------------------------
+ */
+
+function navigate(viewId) {
+    document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+    
+    document.getElementById('view-' + viewId).classList.add('active');
+    document.querySelector(`.nav-item[data-target="${viewId}"]`).classList.add('active');
+    
+    // Refresh specific data on nav
+    if(viewId === 'dashboard') initDashboard();
+    if(viewId === 'employees') renderEmployeeTable('');
+    if(viewId === 'contracts') renderContractTable();
+    if(viewId === 'tasks') renderKanban();
+    if(viewId === 'projects') renderProjects();
+    if(viewId === 'notifications') renderNotifications();
+    if(viewId === 'timeline') populateTimelineDropdown();
+    if(viewId === 'ai-summary') populateAIDropdown();
+}
+
+// Helpers
+function getStatusPill(statusText) {
+    let cls = 'status-info';
+    let text = statusText;
+    if(['Active', 'Completed'].includes(statusText)) cls = 'status-success';
+    if(['Expiring Soon', 'Pending', 'Medium'].includes(statusText)) cls = 'status-warning';
+    if(['Critical', 'Expired', 'High'].includes(statusText)) cls = 'status-critical';
+    if(['In Progress'].includes(statusText)) cls = 'status-info';
+    
+    return `<span class="status-pill ${cls}">${text}</span>`;
+}
+
+// 1. Dashboard
+let dashCharts = {};
+async function initDashboard() {
+    const emps = await OData.getEmployeeSet();
+    const cons = await OData.getContractSet();
+    const tasks = await OData.getTaskSet();
+    const projs = await OData.getProjectSet();
+    const notifs = await OData.getNotificationSet();
+
+    document.getElementById('kpi-emp').innerText = emps.length;
+    document.getElementById('kpi-contracts').innerText = cons.filter(c => c.DAYS_REMAINING <= 30 && c.DAYS_REMAINING > 0).length;
+    document.getElementById('kpi-tasks').innerText = tasks.filter(t => t.STATUS !== 'Completed').length;
+    document.getElementById('kpi-projects').innerText = projs.filter(p => p.STATUS === 'In Progress').length;
+    
+    document.getElementById('notif-badge').innerText = notifs.filter(n=>!n.IS_READ).length || '';
+    if(notifs.filter(n=>!n.IS_READ).length === 0) document.getElementById('notif-badge').style.display = 'none';
+
+    // Alerts mini list
+    const unread = notifs.filter(n=>!n.IS_READ).slice(0,3);
+    document.getElementById('dash-alerts-container').innerHTML = unread.map(n => `
+        <div style="padding:10px; border-left:3px solid var(--status-critical); background:#f4f5f6; margin-bottom:8px; font-size:13px; border-radius:3px;">
+            <strong>${n.TYPE}:</strong> ${n.MESSAGE}
+        </div>
+    `).join('');
+
+    // Charts
+    if(dashCharts.task) dashCharts.task.destroy();
+    if(dashCharts.contract) dashCharts.contract.destroy();
+
+    const tPending = tasks.filter(t=>t.STATUS==='Pending').length;
+    const tProg = tasks.filter(t=>t.STATUS==='In Progress').length;
+    const tComp = tasks.filter(t=>t.STATUS==='Completed').length;
+
+    dashCharts.task = new Chart(document.getElementById('taskChart'), {
+        type: 'bar',
+        data: {
+            labels: ['Pending', 'In Progress', 'Completed'],
+            datasets: [{
+                label: 'Tasks',
+                data: [tPending, tProg, tComp],
+                backgroundColor: ['#e9730c', '#0070f2', '#107e3e']
+            }]
+        },
+        options: { plugins: { legend: {display:false} } }
+    });
+
+    const cActive = cons.filter(c=>c.CALC_STATUS==='Active').length;
+    const cSoon = cons.filter(c=>c.CALC_STATUS==='Expiring Soon').length;
+    const cCrit = cons.filter(c=>c.CALC_STATUS==='Critical').length;
+    const cExp = cons.filter(c=>c.CALC_STATUS==='Expired').length;
+
+    dashCharts.contract = new Chart(document.getElementById('contractChart'), {
+        type: 'doughnut',
+        data: {
+            labels: ['Active', 'Expiring Soon', 'Critical', 'Expired'],
+            datasets: [{
+                data: [cActive, cSoon, cCrit, cExp],
+                backgroundColor: ['#107e3e', '#e9730c', '#bb0000', '#6a6d70']
+            }]
+        },
+        options: { cutout: '60%' }
+    });
+}
+
+// 2. Employees
+async function renderEmployeeTable(query) {
+    const emps = await OData.getEmployeeSet();
+    const cons = await OData.getContractSet();
+    
+    const tbody = document.querySelector('#emp-table tbody');
+    tbody.innerHTML = '';
+    
+    emps.forEach(e => {
+        // filter logic
+        if(query && !e.NAME.toLowerCase().includes(query.toLowerCase()) && !e.EMP_ID.toLowerCase().includes(query.toLowerCase())) return;
+
+        const c = cons.find(cx => cx.EMP_ID === e.EMP_ID);
+        const cDate = c ? c.END_DATE : 'N/A';
+        const cStat = c ? c.CALC_STATUS : 'No Contract';
+
+        tbody.innerHTML += `
+            <tr>
+                <td><strong>${e.EMP_ID}</strong></td>
+                <td>${e.NAME}</td>
+                <td>${e.ROLE}</td>
+                <td>${e.DEPARTMENT}</td>
+                <td>${e.JOIN_DATE}</td>
+                <td>${getStatusPill(cStat)}</td>
+                <td>
+                    <button class="sap-btn" style="padding:4px 8px;"><i class="fa-solid fa-pen"></i></button>
+                    <button class="sap-btn" style="padding:4px 8px; color:var(--status-critical); border-color:var(--status-critical)"><i class="fa-solid fa-trash"></i></button>
+                </td>
+            </tr>
+        `;
+    });
+}
+
+// 3. Contracts
+async function renderContractTable() {
+    const emps = await OData.getEmployeeSet();
+    const cons = await OData.getContractSet();
+    const tbody = document.querySelector('#contract-table tbody');
+    tbody.innerHTML = '';
+    
+    cons.forEach(c => {
+        const e = emps.find(ex => ex.EMP_ID === c.EMP_ID);
+        let remainTxt = c.DAYS_REMAINING < 0 ? 'Past Due' : c.DAYS_REMAINING + ' days';
+
+        tbody.innerHTML += `
+            <tr>
+                <td><strong>${c.CONTRACT_ID}</strong></td>
+                <td>${e ? e.NAME : c.EMP_ID}</td>
+                <td>${c.TYPE}</td>
+                <td>${c.END_DATE}</td>
+                <td><strong>${remainTxt}</strong></td>
+                <td>${getStatusPill(c.CALC_STATUS)}</td>
+                <td>
+                    <button class="sap-btn sap-btn-primary" style="padding:4px 8px;" onclick="showToast('Renewal initiated for ${c.CONTRACT_ID}. Navigating to SAP Ariba...')">Renew</button>
+                </td>
+            </tr>
+        `;
+    });
+}
+
+// 4. Kanban
+async function renderKanban() {
+    const tasks = await OData.getTaskSet();
+    const emps = await OData.getEmployeeSet();
+
+    const pDiv = document.getElementById('kb-pending'); pDiv.innerHTML='';
+    const iDiv = document.getElementById('kb-progress'); iDiv.innerHTML='';
+    const cDiv = document.getElementById('kb-completed'); cDiv.innerHTML='';
+    
+    let p=0, i=0, c=0;
+
+    tasks.forEach(t => {
+        const e = emps.find(ex => ex.EMP_ID === t.ASSIGNED_TO);
+        const card = `
+            <div class="kanban-card">
+                <div style="float:right">${getStatusPill(t.PRIORITY)}</div>
+                <div class="kanban-card-title">${t.TITLE}</div>
+                <div style="font-size:12px; color:#6a6d70; margin-bottom:8px;">${t.DESCRIPTION}</div>
+                <div style="display:flex; justify-content:space-between; align-items:center; font-size:12px;">
+                    <span><i class="fa-regular fa-user" style="color:var(--sapBrandColor)"></i> ${e?e.NAME:'Unassigned'}</span>
+                    <span><i class="fa-regular fa-clock"></i> ${t.DEADLINE}</span>
+                </div>
+            </div>
+        `;
+        if(t.STATUS === 'Pending') { pDiv.innerHTML+=card; p++; }
+        if(t.STATUS === 'In Progress') { iDiv.innerHTML+=card; i++; }
+        if(t.STATUS === 'Completed') { cDiv.innerHTML+=card; c++; }
+    });
+    
+    document.getElementById('kb-count-pending').innerText = p;
+    document.getElementById('kb-count-progress').innerText = i;
+    document.getElementById('kb-count-completed').innerText = c;
+}
+
+// 5. Projects
+async function renderProjects() {
+    const projs = await OData.getProjectSet();
+    const div = document.getElementById('projects-container');
+    div.innerHTML = '';
+    projs.forEach(p => {
+        div.innerHTML += `
+            <div class="card project-card">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                    <h3 style="font-size:16px;">${p.NAME}</h3>
+                    ${getStatusPill(p.STATUS)}
+                </div>
+                <div style="font-size:13px; color:#6a6d70; margin-bottom:8px;"><strong>Client:</strong> ${p.CLIENT}</div>
+                <div style="font-size:13px; color:#6a6d70; margin-bottom:16px;"><strong>Timeline:</strong> ${p.START_DATE} to ${p.END_DATE}</div>
+                <div>
+                   <span style="font-size:12px; font-weight:600; color:var(--sapBrandColor)">View Resources -></span>
+                </div>
+            </div>
+        `;
+    });
+}
+
+// 6. Notifications
+async function renderNotifications() {
+    const notifs = await OData.getNotificationSet();
+    const div = document.getElementById('full-notifications-container');
+    div.innerHTML = '';
+    notifs.forEach(n => {
+        let icon = n.TYPE.includes('Contract') ? 'fa-file-signature' : 'fa-cake-candles';
+        if(n.TYPE.includes('Risk')) icon = 'fa-triangle-exclamation';
+        let bg = n.IS_READ ? '#fff' : '#f7fbff';
+        let bld = n.IS_READ ? '400' : '600';
+
+        div.innerHTML += `
+            <div style="padding:16px; border-bottom:1px solid var(--sapBorderColor); background:${bg}; display:flex; gap:16px; align-items:center;">
+                <div style="width:40px;height:40px;border-radius:50%;background:var(--sapBackgroundColor); display:flex; align-items:center; justify-content:center; color:var(--sapBrandColor)">
+                    <i class="fa-solid ${icon}"></i>
+                </div>
+                <div style="flex-grow:1;">
+                    <div style="font-size:12px; color:#6a6d70; margin-bottom:4px;">${n.DATE}</div>
+                    <div style="font-size:14px; font-weight:${bld};">${n.TYPE}: ${n.MESSAGE}</div>
+                </div>
+            </div>
+        `;
+    });
+}
+function markAllNotificationsRead() {
+    ZSWMS.NOTIFICATION.forEach(n => n.IS_READ = true);
+    renderNotifications();
+    initDashboard(); // update badge
+    showToast('All notifications marked as read.');
+}
+
+// 7. Timeline
+async function populateTimelineDropdown() {
+    const emps = await OData.getEmployeeSet();
+    const sel = document.getElementById('timeline-emp-select');
+    sel.innerHTML = '<option value="">Select Employee...</option>';
+    emps.forEach(e => {
+        sel.innerHTML += `<option value="${e.EMP_ID}">${e.EMP_ID} - ${e.NAME}</option>`;
+    });
+}
+
+async function renderTimeline() {
+    const empId = document.getElementById('timeline-emp-select').value;
+    const tc = document.getElementById('timeline-container');
+    if(!empId) { tc.innerHTML=''; return; }
+
+    const events = await OData.getTimelineSet(empId);
+    tc.innerHTML = '';
+    events.forEach(ev => {
+        tc.innerHTML += `
+            <div class="timeline-event">
+                <div class="timeline-point"></div>
+                <div class="timeline-content">
+                    <div class="timeline-date">${ev.date}</div>
+                    <div class="timeline-title">${ev.title}</div>
+                    <div style="font-size:13px; color:#32363a; margin-top:4px;">${ev.desc}</div>
+                </div>
+            </div>
+        `;
+    });
+}
+
+// 8. AI Summary
+async function populateAIDropdown() {
+    const emps = await OData.getEmployeeSet();
+    const sel = document.getElementById('ai-emp-select');
+    sel.innerHTML = '<option value="">Select Employee...</option>';
+    emps.forEach(e => {
+        sel.innerHTML += `<option value="${e.EMP_ID}">${e.EMP_ID} - ${e.NAME}</option>`;
+    });
+}
+
+function generateAISummary() {
+    const empId = document.getElementById('ai-emp-select').value;
+    if(!empId) { showToast("Please select an employee first!"); return; }
+    
+    // Simulate AI delay
+    const out = document.getElementById('ai-output');
+    const txt = document.getElementById('ai-text');
+    out.style.display = 'block';
+    txt.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Generating insights based on OData services...';
+    
+    setTimeout(() => {
+        const summary = Z_AI_SUMMARIZE_EMPLOYEE(empId);
+        txt.innerHTML = summary;
+        showToast("AI Summary Generated successfully.");
+    }, 800);
+}
+
+// UI Enhancement: Fiori Toast Messages
+function showToast(message) {
+    const container = document.getElementById('toast-container');
+    const toast = document.createElement('div');
+    toast.className = 'sap-toast';
+    toast.innerHTML = `<i class="fa-solid fa-info-circle"></i> ${message}`;
+    container.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.remove();
+    }, 3000);
+}
+
+// UI Enhancement: Dark mode toggle
+function toggleTheme() {
+    document.body.classList.toggle('dark-theme');
+    const isDark = document.body.classList.contains('dark-theme');
+    showToast(isDark ? "Horizon Dark Theme activated." : "Horizon Morning Theme activated.");
+}
+
+
+// Initialization
+window.onload = () => {
+    initDashboard();
+};
+
+</script>
+</body>
+</html>
